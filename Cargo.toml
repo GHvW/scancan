@@ -1,0 +1,13 @@
+[package]
+name = "scancan"
+version = "0.1.0"
+authors = ["Garrett van Wageningen <ghvanw283@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+# TODO - change full to only the features required by the app
+tokio = { version = "1", features = ["full"] }
+async-channel = "1.6.1"
