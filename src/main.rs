@@ -22,6 +22,15 @@ async fn main() {
                 worker(ports_receiver, results_sender).await.expect("something went wrong with a worker");
             });
         });
+    // for in version hangs. channels are still in scope. can be fixed by wrapping with another task, or ...?
+    // for _ in 1..=100 {
+    //     let ports_receiver = ports_rx.clone();
+    //     let results_sender = results_tx.clone();
+    //     tokio::spawn(async move { 
+    //         worker(ports_receiver, results_sender).await.expect("something went wrong with a worker");
+    //     });
+    // }
+
 
     tokio::spawn(async move {
         for i in 1..=1024 {
