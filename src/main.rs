@@ -5,7 +5,6 @@ use tokio::net::TcpStream;
 use async_channel;
 
 
-
 #[tokio::main]
 async fn main() {
     println!("Scan Ports!");
@@ -13,6 +12,8 @@ async fn main() {
     let (ports_tx, ports_rx) = async_channel::bounded(100);
     let (results_tx, mut results_rx) = mpsc::channel(1);
 
+
+    // move in foreach helps with channel lifetimes
     (1..100)
         .for_each(move |_| {
             let ports_receiver = ports_rx.clone();
