@@ -1,2 +1,2 @@
 # scancan
-port scanner exercise
+port scanner exercise from [Black Hat Go](https://nostarch.com/blackhatgo)
