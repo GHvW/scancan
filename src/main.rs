@@ -12,25 +12,13 @@ async fn main() {
     let (ports_tx, ports_rx) = async_channel::bounded(100);
     let (results_tx, mut results_rx) = mpsc::channel(1);
 
-
-    // move in foreach helps with channel lifetimes
-    (1..100)
-        .for_each(move |_| {
-            let ports_receiver = ports_rx.clone();
-            let results_sender = results_tx.clone();
-            tokio::spawn(async move { 
-                worker(ports_receiver, results_sender).await.expect("something went wrong with a worker");
-            });
+    for _ in 1..=100 {
+        let ports_receiver = ports_rx.clone();
+        let results_sender = results_tx.clone();
+        tokio::spawn(async move { 
+            worker(ports_receiver, results_sender).await.expect("something went wrong with a worker");
         });
-    // for in version hangs. channels are still in scope. can be fixed by wrapping with another task, or ...?
-    // for _ in 1..=100 {
-    //     let ports_receiver = ports_rx.clone();
-    //     let results_sender = results_tx.clone();
-    //     tokio::spawn(async move { 
-    //         worker(ports_receiver, results_sender).await.expect("something went wrong with a worker");
-    //     });
-    // }
-
+    }
 
     tokio::spawn(async move {
         for i in 1..=1024 {
@@ -41,21 +29,23 @@ async fn main() {
     });
 
     let mut results = Vec::new();
-    while let Some(msg) = results_rx.recv().await {
-        if msg != 0 {
-            // println!("port: {} is open", msg);
-            results.push(msg);
+    // drain the results channel
+    for _ in 1..=1024 {
+        if let Some(result) = results_rx.recv().await {
+            if result != 0 {
+                results.push(result);
+            }
         }
     }
 
     println!("ports {:?} are open", results);
 }
 
+
 async fn worker(ports: async_channel::Receiver<i32>, results: mpsc::Sender<i32>) -> Result<(), Box<dyn Error>> {
     let address = "scanme.nmap.org";
 
     while let Ok(port) = ports.recv().await {
-        // println!("checking port {}", port);
         match TcpStream::connect(format!("{}:{}", address, port)).await {
             Ok(_) => {
                 results.send(port).await?;
